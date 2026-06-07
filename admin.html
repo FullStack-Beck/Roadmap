@@ -745,6 +745,34 @@ const SUPABASE_URL = 'https://tzehikqnnzaykyaomzer.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR6ZWhpa3FubnpheWt5YW9temVyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA3OTMxMzMsImV4cCI6MjA5NjM2OTEzM30.Trm5ha1xSr5MvQ-s3AKDdcBncdVCH_xi3CjhVfQaLfo';
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
+async function initializeAuth() {
+  const { data: { session } } = await sb.auth.getSession();
+
+  if (session?.user) {
+    currentUser = session.user;
+
+    document.getElementById('auth-screen').style.display = 'none';
+    document.getElementById('dashboard').style.display = 'flex';
+
+    await loadCurrentProfile();
+    await Promise.all([
+      loadOverview(),
+      loadRoadmapPage(),
+      loadSprintPage(),
+      loadUpdatesPage(),
+      loadTeamPage(),
+      loadPlaytestPage()
+    ]);
+
+    subscribeRealtime();
+  } else {
+    document.getElementById('auth-screen').style.display = 'flex';
+    document.getElementById('dashboard').style.display = 'none';
+  }
+}
+
+initializeAuth();
+
 const TASKS = [
   {id:'t1_1', name:'Unity Project Setup',        phase:'Foundation'},
   {id:'t1_2', name:'VR Hand Tracking',           phase:'Foundation'},
@@ -1061,10 +1089,23 @@ function toast(msg, err = false) {
 }
 
 // ─── INIT: check session ──────────────────────────────────────
-sb.auth.getSession().then(({ data: { session } }) => {
-  if (!session) {
+sb.auth.onAuthStateChange(async (event, session) => {
+  console.log('Auth event:', event);
+
+  if (event === 'SIGNED_OUT') {
+    currentUser = null;
+
     document.getElementById('auth-screen').style.display = 'flex';
-    document.getElementById('dashboard').style.display   = 'none';
+    document.getElementById('dashboard').style.display = 'none';
+
+    return;
+  }
+
+  if (session?.user) {
+    currentUser = session.user;
+
+    document.getElementById('auth-screen').style.display = 'none';
+    document.getElementById('dashboard').style.display = 'flex';
   }
 });
 
