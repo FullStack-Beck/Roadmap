@@ -1106,27 +1106,6 @@ function toast(msg, err = false) {
   toastTimer = setTimeout(() => el.classList.remove('show'), 3000);
 }
 
-// ─── INIT: check session ──────────────────────────────────────
-sb.auth.onAuthStateChange(async (event, session) => {
-  console.log('Auth event:', event);
-
-  if (event === 'SIGNED_OUT') {
-    currentUser = null;
-
-    document.getElementById('auth-screen').style.display = 'flex';
-    document.getElementById('dashboard').style.display = 'none';
-
-    return;
-  }
-
-  if (session?.user) {
-    currentUser = session.user;
-
-    document.getElementById('auth-screen').style.display = 'none';
-    document.getElementById('dashboard').style.display = 'flex';
-  }
-});
-
 // Enter key on login
 document.getElementById('auth-password').addEventListener('keydown', e => {
   if (e.key === 'Enter') login();
