@@ -798,7 +798,7 @@ sb.auth.onAuthStateChange(async (event, session) => {
 
 // ─── PROFILE ──────────────────────────────────────────────────
 async function loadCurrentProfile() {
-  const { data } = await sb.from('profiles').select('*').eq('id', currentUser.id).single().catch(() => ({ data: null }));
+  const { data } = await sb.from('profiles').select('*').eq('id', currentUser.id).maybeSingle();
   currentProfile = data;
 
   const initials = (data?.display_name || currentUser.email || '?').slice(0,1).toUpperCase();
@@ -1013,7 +1013,7 @@ async function loadTeamPage() {
 
 // ─── PLAYTEST PAGE ────────────────────────────────────────────
 async function loadPlaytestPage() {
-  const { data } = await sb.from('playtest_status').select('*').single().catch(() => ({ data: null }));
+  const { data } = await sb.from('playtest_status').select('*').maybeSingle();
   if (data) {
     document.getElementById('pt-status').value   = data.status || 'closed';
     document.getElementById('pt-platform').value = data.platform || '';
@@ -1029,7 +1029,7 @@ async function savePlaytest() {
     updated_at: new Date().toISOString(),
   };
 
-  const { data: existing } = await sb.from('playtest_status').select('id').single().catch(() => ({ data: null }));
+  const { data: existing } = await sb.from('playtest_status').select('id').maybeSingle();
   const op = existing
     ? sb.from('playtest_status').update(payload).eq('id', existing.id)
     : sb.from('playtest_status').insert(payload);
@@ -1061,15 +1061,8 @@ function toast(msg, err = false) {
 }
 
 // ─── INIT: check session ──────────────────────────────────────
-sb.auth.getSession().then(async ({ data: { session } }) => {
-  if (session?.user) {
-    currentUser = session.user;
-    document.getElementById('auth-screen').style.display = 'none';
-    document.getElementById('dashboard').style.display   = 'flex';
-    await loadCurrentProfile();
-    await Promise.all([loadOverview(), loadRoadmapPage(), loadSprintPage(), loadUpdatesPage(), loadTeamPage(), loadPlaytestPage()]);
-    subscribeRealtime();
-  } else {
+sb.auth.getSession().then(({ data: { session } }) => {
+  if (!session) {
     document.getElementById('auth-screen').style.display = 'flex';
     document.getElementById('dashboard').style.display   = 'none';
   }
