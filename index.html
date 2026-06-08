@@ -1273,6 +1273,13 @@ function subscribeRealtime() {
   await Promise.all([loadTeam(), loadUpdates()]);
   subscribeRealtime();
 })();
+
+// Restore session on page load
+sb.auth.getSession().then(({ data: { session } }) => {
+  if (session) {
+    sb.auth.setSession(session);
+  }
+});
 </script>
 </body>
 </html>

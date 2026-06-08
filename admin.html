@@ -2113,6 +2113,14 @@ document.getElementById('up-pass').addEventListener('keydown', e => {
 document.getElementById('new-subtask-name').addEventListener('keydown', e => {
   if (e.key === 'Enter') addSubtaskField();
 });
+
+// Restore session on page load
+sb.auth.getSession().then(({ data: { session } }) => {
+  if (session) {
+    sb.auth.setSession(session);
+  }
+});
+
 </script>
 </body>
 </html>
