@@ -905,17 +905,33 @@ let groupsCache = [], tasksCache = [], subtasksCache = [];
 // ──────────────────────────────────────────────────────────────
 // AUTH
 // ──────────────────────────────────────────────────────────────
-sb.auth.onAuthStateChange(async (event, session) => {
-  user = session?.user ?? null;
-  if (user) {
+async function initAuth() {
+  const { data: { session } } = await sb.auth.getSession();
+  
+  if (session?.user) {
+    user = session.user;
     const { data } = await sb.from('profiles').select('*').eq('id', user.id).maybeSingle();
     profile = data;
-  } else {
-    profile = null;
+    renderHeader();
+    closeAuth();
   }
-  renderHeader();
-  closeAuth();
-});
+
+  sb.auth.onAuthStateChange(async (event, session) => {
+    if (event === 'SIGNED_OUT') {
+      user = null;
+      profile = null;
+      renderHeader();
+    } else if (event === 'SIGNED_IN' && !user) {
+      user = session.user;
+      const { data } = await sb.from('profiles').select('*').eq('id', user.id).maybeSingle();
+      profile = data;
+      renderHeader();
+      closeAuth();
+    }
+  });
+}
+
+initAuth();
 
 function renderHeader() {
   const el = document.getElementById('header-right');
