@@ -1414,13 +1414,17 @@ sb.auth.onAuthStateChange(async (event, session) => {
   console.log('AUTH EVENT:', event, session?.user?.id);
   if (session?.user) {
     currentUser = session.user;
-    const result = await sb.from('profiles').select('*').eq('id', currentUser.id).maybeSingle();
-    console.log('PROFILE RESULT:', result);
-    currentProfile = result.data;
-    console.log('CALLING showDashboard, profile:', currentProfile);
-    showDashboard();
-    await loadAll();
-    subscribeRealtime();
+    console.log('ABOUT TO FETCH PROFILE');
+    try {
+      const result = await sb.from('profiles').select('*').eq('id', currentUser.id).maybeSingle();
+      console.log('PROFILE RESULT:', result);
+      currentProfile = result.data;
+      showDashboard();
+      await loadAll();
+      subscribeRealtime();
+    } catch(err) {
+      console.error('CRASH:', err);
+    }
   } else {
     currentUser = null;
     currentProfile = null;
