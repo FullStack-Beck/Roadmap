@@ -741,6 +741,7 @@ hr.divider-line {
 
 <script>
 // ─── CONFIG ───────────────────────────────────────────────────
+// ─── CONFIG ───────────────────────────────────────────────────
 const SUPABASE_URL = 'https://tzehikqnnzaykyaomzer.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR6ZWhpa3FubnpheWt5YW9temVyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA3OTMxMzMsImV4cCI6MjA5NjM2OTEzM30.Trm5ha1xSr5MvQ-s3AKDdcBncdVCH_xi3CjhVfQaLfo';
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
@@ -751,56 +752,54 @@ const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
   }
 });
 
-async function initializeAuth() {
-  const { data: { session } } = await sb.auth.getSession();
-
-  if (session?.user) {
-    currentUser = session.user;
-
-    document.getElementById('auth-screen').style.display = 'none';
-    document.getElementById('dashboard').style.display = 'flex';
-
-    await loadCurrentProfile();
-    await Promise.all([
-      loadOverview(),
-      loadRoadmapPage(),
-      loadSprintPage(),
-      loadUpdatesPage(),
-      loadTeamPage(),
-      loadPlaytestPage()
-    ]);
-
-    subscribeRealtime();
-  } else {
-    document.getElementById('auth-screen').style.display = 'flex';
-    document.getElementById('dashboard').style.display = 'none';
-  }
-}
-
 let currentUser = null;
 let currentProfile = null;
 let realtimeChannel = null;
+let isDataLoading = false; // Flag to prevent redundant data fetching
 
-initializeAuth();
+// ─── AUTH EVENT LISTENER ──────────────────────────────────────
+// This fires automatically on page load AND whenever the user logs in/out
+sb.auth.onAuthStateChange(async (event, session) => {
+  if (session?.user) {
+    currentUser = session.user;
+    
+    // Update UI elements safely
+    document.getElementById('auth-screen').style.display = 'none';
+    document.getElementById('dashboard').style.display = 'flex';
+    
+    // Prevent fetching data twice if multiple events trigger quickly
+    if (!isDataLoading) {
+      isDataLoading = true;
+      try {
+        await loadCurrentProfile();
+        await Promise.all([
+          loadOverview(), 
+          loadRoadmapPage(), 
+          loadSprintPage(), 
+          loadUpdatesPage(), 
+          loadTeamPage(), 
+          loadPlaytestPage()
+        ]);
+        subscribeRealtime();
+      } catch (err) {
+        console.error("Error loading dashboard data:", err);
+      } finally {
+        isDataLoading = false;
+      }
+    }
+  } else {
+    // Reset state completely when logged out
+    currentUser = null;
+    currentProfile = null;
+    document.getElementById('auth-screen').style.display = 'flex';
+    document.getElementById('dashboard').style.display = 'none';
+  }
 
-const TASKS = [
-  {id:'t1_1', name:'Unity Project Setup',        phase:'Foundation'},
-  {id:'t1_2', name:'VR Hand Tracking',           phase:'Foundation'},
-  {id:'t1_3', name:'Physics-Based Grabbing',     phase:'Foundation'},
-  {id:'t1_4', name:'Object Attachment System',   phase:'Foundation'},
-  {id:'t2_1', name:'Mining Loop',                phase:'Core Gameplay'},
-  {id:'t2_2', name:'Smelting System',            phase:'Core Gameplay'},
-  {id:'t2_3', name:'Inventory & Storage',        phase:'Core Gameplay'},
-  {id:'t2_4', name:'Basic Crafting Bench',       phase:'Core Gameplay'},
-  {id:'t3_1', name:'World Streaming',            phase:'World'},
-  {id:'t3_2', name:'Day/Night Cycle',            phase:'World'},
-  {id:'t3_3', name:'Weather System',             phase:'World'},
-  {id:'t4_1', name:'Multiplayer Networking',     phase:'Social'},
-  {id:'t4_2', name:'Voice Proximity Chat',       phase:'Social'},
-  {id:'t4_3', name:'Player Profiles',            phase:'Social'},
-];
+  if (event === 'TOKEN_REFRESHED') console.log('Session refreshed');
+  if (event === 'SIGNED_OUT') console.log('Signed out');
+});
 
-// ─── AUTH ─────────────────────────────────────────────────────
+// ─── AUTH ACTIONS ─────────────────────────────────────────────
 async function login() {
   const email = document.getElementById('auth-email').value.trim();
   const pass  = document.getElementById('auth-password').value;
@@ -810,38 +809,13 @@ async function login() {
   if (error) {
     document.getElementById('auth-error').textContent = error.message;
   }
+  // No need to change HTML display here; onAuthStateChange will catch it!
 }
 
 async function logout() {
   await sb.auth.signOut();
-
-  currentUser = null;
-
-  document.getElementById('dashboard').style.display = 'none';
-  document.getElementById('auth-screen').style.display = 'flex';
+  // No need to change HTML display here; onAuthStateChange will catch the fallout!
 }
-
-sb.auth.onAuthStateChange(async (event, session) => {
-  if (session?.user) {
-    currentUser = session.user;
-    document.getElementById('auth-screen').style.display = 'none';
-    document.getElementById('dashboard').style.display = 'flex';
-    await loadCurrentProfile();
-    await Promise.all([loadOverview(), loadRoadmapPage(), loadSprintPage(), loadUpdatesPage(), loadTeamPage(), loadPlaytestPage()]);
-    subscribeRealtime();
-  } else {
-    document.getElementById('auth-screen').style.display = 'flex';
-    document.getElementById('dashboard').style.display = 'none';
-  }
-
-  if (event === 'TOKEN_REFRESHED') {
-    console.log('Session refreshed');
-  }
-
-  if (event === 'SIGNED_OUT') {
-    console.log('Signed out');
-  }
-});
 
 // ─── PROFILE ──────────────────────────────────────────────────
 async function loadCurrentProfile() {
