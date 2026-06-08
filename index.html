@@ -946,16 +946,13 @@ async function doSignUp() {
   const pass  = document.getElementById('up-pass').value;
   setAuthMsg('');
   if (!name) { setAuthMsg('Display name required.'); return; }
-  const { data, error } = await sb.auth.signUp({
+  const { error } = await sb.auth.signUp({
     email, password: pass,
     options: { data: { display_name: name } }
   });
   if (error) { setAuthMsg(error.message); return; }
-  if (data?.user) {
-    await sb.from('profiles').upsert({ id: data.user.id, display_name: name });
-  }
   document.getElementById('auth-msg').style.color = 'var(--teal2)';
-  setAuthMsg('Account created! Check your email to confirm.');
+  setAuthMsg('Account forged! Signing you in…');
 }
 
 async function doSignOut() { await sb.auth.signOut(); }

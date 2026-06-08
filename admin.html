@@ -1463,15 +1463,12 @@ async function doSignUp() {
   const pass  = document.getElementById('up-pass').value;
   clearAuthMessages();
   if (!name) { showAuthError('A display name is required.'); return; }
-  const { data, error } = await sb.auth.signUp({
+  const { error } = await sb.auth.signUp({
     email, password: pass,
     options: { data: { display_name: name } }
   });
   if (error) { showAuthError(error.message); return; }
-  if (data?.user) {
-    await sb.from('profiles').upsert({ id: data.user.id, display_name: name });
-  }
-  document.getElementById('auth-success').textContent = 'Account forged! Check your email to confirm, then sign in.';
+  document.getElementById('auth-success').textContent = 'Account forged! Signing you in…';
   document.getElementById('auth-success').style.display = 'block';
 }
 
