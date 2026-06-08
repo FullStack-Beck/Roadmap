@@ -741,7 +741,6 @@ hr.divider-line {
 
 <script>
 // ─── CONFIG ───────────────────────────────────────────────────
-// ─── CONFIG ───────────────────────────────────────────────────
 const SUPABASE_URL = 'https://tzehikqnnzaykyaomzer.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR6ZWhpa3FubnpheWt5YW9temVyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA3OTMxMzMsImV4cCI6MjA5NjM2OTEzM30.Trm5ha1xSr5MvQ-s3AKDdcBncdVCH_xi3CjhVfQaLfo';
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
@@ -760,27 +759,42 @@ let isDataLoading = false; // Flag to prevent redundant data fetching
 // ─── AUTH EVENT LISTENER ──────────────────────────────────────
 // This fires automatically on page load AND whenever the user logs in/out
 sb.auth.onAuthStateChange(async (event, session) => {
+  console.log(`Auth event triggered: ${event}`); // Crucial for debugging
+
   if (session?.user) {
     currentUser = session.user;
     
-    // Update UI elements safely
-    document.getElementById('auth-screen').style.display = 'none';
-    document.getElementById('dashboard').style.display = 'flex';
+    // Safely update UI display toggles
+    const authScreen = document.getElementById('auth-screen');
+    const dashboard = document.getElementById('dashboard');
+    if (authScreen) authScreen.style.display = 'none';
+    if (dashboard) dashboard.style.display = 'flex';
     
-    // Prevent fetching data twice if multiple events trigger quickly
+    // Prevent duplicate fetches on rapid sequential events (like INITIAL_SESSION + SIGNED_IN)
     if (!isDataLoading) {
       isDataLoading = true;
       try {
+        console.log("Starting dashboard data fetch chain...");
+        
+        // Fetch profile first since later pages might depend on currentProfile data
         await loadCurrentProfile();
+        
+        // Concurrently run page-loading functions
         await Promise.all([
-          loadOverview(), 
-          loadRoadmapPage(), 
-          loadSprintPage(), 
-          loadUpdatesPage(), 
-          loadTeamPage(), 
-          loadPlaytestPage()
+          typeof loadOverview === 'function' ? loadOverview() : Promise.resolve(),
+          typeof loadRoadmapPage === 'function' ? loadRoadmapPage() : Promise.resolve(),
+          typeof loadSprintPage === 'function' ? loadSprintPage() : Promise.resolve(),
+          typeof loadUpdatesPage === 'function' ? loadUpdatesPage() : Promise.resolve(),
+          typeof loadTeamPage === 'function' ? loadTeamPage() : Promise.resolve(),
+          typeof loadPlaytestPage === 'function' ? loadPlaytestPage() : Promise.resolve()
         ]);
-        subscribeRealtime();
+        
+        // Initialize real-time listeners
+        if (typeof subscribeRealtime === 'function') {
+          subscribeRealtime();
+        }
+        
+        console.log("Dashboard data fetch chain completed successfully.");
       } catch (err) {
         console.error("Error loading dashboard data:", err);
       } finally {
@@ -788,15 +802,20 @@ sb.auth.onAuthStateChange(async (event, session) => {
       }
     }
   } else {
-    // Reset state completely when logged out
+    // Reset state completely when logged out or when session is invalid
     currentUser = null;
     currentProfile = null;
-    document.getElementById('auth-screen').style.display = 'flex';
-    document.getElementById('dashboard').style.display = 'none';
-  }
+    
+    if (realtimeChannel) {
+      sb.removeChannel(realtimeChannel);
+      realtimeChannel = null;
+    }
 
-  if (event === 'TOKEN_REFRESHED') console.log('Session refreshed');
-  if (event === 'SIGNED_OUT') console.log('Signed out');
+    const authScreen = document.getElementById('auth-screen');
+    const dashboard = document.getElementById('dashboard');
+    if (authScreen) authScreen.style.display = 'flex';
+    if (dashboard) dashboard.style.display = 'none';
+  }
 });
 
 // ─── AUTH ACTIONS ─────────────────────────────────────────────
