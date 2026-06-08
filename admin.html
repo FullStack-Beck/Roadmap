@@ -1411,10 +1411,13 @@ let pendingSubtasks = []; // { id?, name, done, _new?, _delete? }
    AUTH
 ═══════════════════════════════════════════════════════════ */
 sb.auth.onAuthStateChange(async (event, session) => {
+  console.log('AUTH EVENT:', event, session?.user?.id);
   if (session?.user) {
     currentUser = session.user;
-    const { data } = await sb.from('profiles').select('*').eq('id', currentUser.id).maybeSingle();
-    currentProfile = data;
+    const result = await sb.from('profiles').select('*').eq('id', currentUser.id).maybeSingle();
+    console.log('PROFILE RESULT:', result);
+    currentProfile = result.data;
+    console.log('CALLING showDashboard, profile:', currentProfile);
     showDashboard();
     await loadAll();
     subscribeRealtime();
