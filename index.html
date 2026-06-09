@@ -735,6 +735,53 @@ footer::before {
         transform: translateY(110vh);
     }
 }
+
+.stripe-support-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+
+  background: #635bff;
+  color: white;
+
+  text-decoration: none;
+  font-family: Inter, sans-serif;
+  font-weight: 600;
+  font-size: 15px;
+
+  padding: 8px 18px;
+  border-radius: 12px;
+
+  min-width: 260px;
+
+  box-shadow:
+    0 4px 14px rgba(99, 91, 255, 0.35);
+
+  transition:
+    transform 0.18s ease,
+    box-shadow 0.18s ease,
+    background 0.18s ease;
+}
+
+.stripe-support-button:hover {
+  background: #5851e6;
+
+  transform: translateY(-1px);
+
+  box-shadow:
+    0 6px 20px rgba(99, 91, 255, 0.45);
+}
+
+.stripe-support-button:active {
+  transform: translateY(1px);
+}
+
+.stripe-badge img {
+  height: 16px;
+  width: auto;
+  display: block;
+}
 </style>
 </head>
 <body>
@@ -852,9 +899,36 @@ footer::before {
 <!-- ─── FOOTER ──────────────────────────────────────────────── -->
 <footer>
   <div class="footer-logo">⚒ PROJECT IRONVEIL</div>
-    <a href="https://donate.stripe.com/9B6aEX3pGerm5M0buU2oE00">
-      <button>Support Ironveil</button>
-    </a>
+    <div class="support-box">
+      <h3>Keep the Forge Burning</h3>
+
+        <a
+          class="stripe-support-button"
+          href="https://donate.stripe.com/9B6aEX3pGerm5M0buU2oE00"
+          target="_blank"
+        >
+          <span>Support Ironveil</span>
+
+          <div class="stripe-badge">
+            <img
+              src="1685814419stripe-logo-white.png"
+              alt="Stripe"
+            >
+          </div>
+        </a>
+
+      <script src='https://storage.ko-fi.com/cdn/widget/Widget_2.js'></script>
+
+      <script>
+        kofiwidget2.init(
+          'Support the forge on Ko-fi',
+          '#8b5a2b',
+          'I1H5212LN3'
+        );
+
+        kofiwidget2.draw();
+      </script>
+    </div>
   <div class="footer-right">Open Development · Built in Public</div>
 </footer>
 
@@ -1358,9 +1432,6 @@ function createRain() {
 // Initialize rain on load
 window.onload = createRain;
 
-</script>
-<script type='text/javascript' src='https://storage.ko-fi.com/cdn/widget/Widget_2.js'></script>
-<script type='text/javascript'>kofiwidget2.init('Support the forge on Ko-fi', '#f09c35', 'I1H5212LN3');kofiwidget2.draw();</script> 
 </script>
 </body>
 </html>
