@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Project Ironveil</title>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Crimson+Pro:wght@300;400;600&display=swap" rel="stylesheet">
+
+<style>
+:root{
+ --bg:#0d0f0e;
+ --surface:#1a1e1c;
+ --gold:#c8a84b;
+ --gold2:#e8c97a;
+ --text:#d8d4c8;
+ --text2:#9a9590;
+ --border:rgba(200,168,75,.15);
+}
+
+*{
+ margin:0;
+ padding:0;
+ box-sizing:border-box;
+}
+
+body{
+ background:var(--bg);
+ color:var(--text);
+ font-family:'Crimson Pro',serif;
+}
+
+header{
+ display:flex;
+ justify-content:space-between;
+ align-items:center;
+ padding:20px 40px;
+ border-bottom:1px solid var(--border);
+ position:sticky;
+ top:0;
+ background:#111513;
+ z-index:100;
+}
+
+.logo{
+ font-family:'Cinzel',serif;
+ color:var(--gold);
+ font-size:20px;
+}
+
+.login-btn{
+ padding:10px 16px;
+ border:1px solid var(--gold);
+ background:transparent;
+ color:var(--gold);
+ cursor:pointer;
+}
+
+.hero{
+ text-align:center;
+ padding:80px 20px;
+}
+
+.hero h1{
+ font-family:'Cinzel',serif;
+ color:var(--gold2);
+ font-size:56px;
+ margin-bottom:20px;
+}
+
+.hero p{
+ color:var(--text2);
+ max-width:700px;
+ margin:auto;
+}
+
+.stats{
+ display:flex;
+ justify-content:center;
+ gap:40px;
+ margin-top:40px;
+ flex-wrap:wrap;
+}
+
+.stat{
+ text-align:center;
+}
+
+.stat-value{
+ font-size:42px;
+ color:var(--gold);
+ font-family:'Cinzel',serif;
+}
+
+section{
+ max-width:1200px;
+ margin:auto;
+ padding:60px 20px;
+}
+
+.section-title{
+ font-family:'Cinzel',serif;
+ color:var(--gold2);
+ margin-bottom:30px;
+ font-size:32px;
+}
+
+.card{
+ background:var(--surface);
+ border:1px solid var(--border);
+ border-radius:10px;
+ padding:20px;
+ margin-bottom:15px;
+}
+
+.sprint-task{
+ display:flex;
+ justify-content:space-between;
+}
+
+.team-grid{
+ display:grid;
+ grid-template-columns:repeat(auto-fill,minmax(250px,1fr));
+ gap:15px;
+}
+
+.member{
+ background:var(--surface);
+ border:1px solid var(--border);
+ padding:20px;
+ border-radius:10px;
+}
+
+.roadmap-column{
+ margin-bottom:40px;
+}
+
+.task{
+ padding:10px;
+ border-bottom:1px solid rgba(255,255,255,.05);
+}
+
+.done{
+ color:#4a9e8a;
+}
+
+.wip{
+ color:#c8a84b;
+}
+
+.planned{
+ color:#9a9590;
+}
+
+.update{
+ margin-bottom:15px;
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">⚒ Project Ironveil</div>
+
+  <button class="login-btn"
+          onclick="location.href='admin.html'">
+    Developer Login
+  </button>
+</header>
+
+<div class="hero">
+  <h1>Project Ironveil</h1>
+
+  <p>
+    An open-development VR crafting RPG inspired by the depth,
+    immersion and physical interactions that made Township Tale special.
+  </p>
+
+  <div class="stats">
+    <div class="stat">
+      <div class="stat-value" id="done-count">0</div>
+      <div>Completed</div>
+    </div>
+
+    <div class="stat">
+      <div class="stat-value" id="wip-count">0</div>
+      <div>In Progress</div>
+    </div>
+
+    <div class="stat">
+      <div class="stat-value" id="overall-progress">0%</div>
+      <div>Overall</div>
+    </div>
+  </div>
+</div>
+
+<section>
+
+  <h2 class="section-title">
+    Current Sprint
+  </h2>
+
+  <div id="sprint-container"></div>
+
+</section>
+
+<section>
+
+  <h2 class="section-title">
+    Roadmap
+  </h2>
+
+  <div class="roadmap-column">
+
+    <h3>✓ Completed</h3>
+    <div id="done-tasks"></div>
+
+  </div>
+
+  <div class="roadmap-column">
+
+    <h3>◐ In Progress</h3>
+    <div id="wip-tasks"></div>
+
+  </div>
+
+  <div class="roadmap-column">
+
+    <h3>○ Planned</h3>
+    <div id="planned-tasks"></div>
+
+  </div>
+
+</section>
+
+<section>
+
+  <h2 class="section-title">
+    Team
+  </h2>
+
+  <div
+      class="team-grid"
+      id="team-grid">
+  </div>
+
+</section>
+
+<section>
+
+  <h2 class="section-title">
+    Development Updates
+  </h2>
+
+  <div id="updates"></div>
+
+</section>
+
+<script>
+
+const SUPABASE_URL =
+'https://YOUR_PROJECT.supabase.co';
+
+const SUPABASE_KEY =
+'YOUR_PUBLIC_ANON_KEY';
+
+const sb =
+supabase.createClient(
+  SUPABASE_URL,
+  SUPABASE_KEY
+);
+
+const TASKS = [
+ {id:'t1_1',name:'Unity Setup'},
+ {id:'t1_2',name:'VR Hand Tracking'},
+ {id:'t1_3',name:'Physics Grabbing'},
+ {id:'t1_4',name:'Object Attachment'},
+ {id:'t2_1',name:'Mining Loop'},
+ {id:'t2_2',name:'Smelting System'}
+];
+
+async function loadRoadmap(){
+
+ const {data:states} =
+ await sb
+ .from('task_states')
+ .select('*');
+
+ const map={};
+
+ states?.forEach(s=>{
+  map[s.task_id]=s.state;
+ });
+
+ let done=0;
+ let wip=0;
+
+ TASKS.forEach(task=>{
+
+   const state =
+   map[task.id] || 'todo';
+
+   const el =
+   document.createElement('div');
+
+   el.className='task';
+
+   el.textContent=
+   task.name;
+
+   if(state==='done'){
+     el.classList.add('done');
+     done++;
+     document
+      .getElementById('done-tasks')
+      .appendChild(el);
+   }
+
+   else if(state==='in-progress'){
+     el.classList.add('wip');
+     wip++;
+     document
+      .getElementById('wip-tasks')
+      .appendChild(el);
+   }
+
+   else{
+     el.classList.add('planned');
+     document
+      .getElementById('planned-tasks')
+      .appendChild(el);
+   }
+ });
+
+ document
+ .getElementById('done-count')
+ .textContent=done;
+
+ document
+ .getElementById('wip-count')
+ .textContent=wip;
+
+ document
+ .getElementById('overall-progress')
+ .textContent=
+ Math.round(
+  (done/TASKS.length)*100
+ )+'%';
+}
+
+async function loadSprint(){
+
+ const {data} =
+ await sb
+ .from('task_assignments')
+ .select(`
+   task_id,
+   profiles(display_name)
+ `);
+
+ const container =
+ document.getElementById(
+  'sprint-container'
+ );
+
+ data?.forEach(row=>{
+
+   const card =
+   document.createElement('div');
+
+   card.className='card';
+
+   card.innerHTML=
+   `
+   <div class="sprint-task">
+     <div>${row.task_id}</div>
+     <div>
+       ${row.profiles?.display_name || 'Unassigned'}
+     </div>
+   </div>
+   `;
+
+   container.appendChild(card);
+ });
+}
+
+async function loadTeam(){
+
+ const {data} =
+ await sb
+ .from('profiles')
+ .select('*');
+
+ const grid =
+ document.getElementById(
+  'team-grid'
+ );
+
+ data?.forEach(member=>{
+
+   const card =
+   document.createElement('div');
+
+   card.className='member';
+
+   card.innerHTML=
+   `
+   <h3>${member.display_name}</h3>
+   <p>${member.role || 'Developer'}</p>
+   `;
+
+   grid.appendChild(card);
+ });
+}
+
+async function loadUpdates(){
+
+ const {data} =
+ await sb
+ .from('public_updates')
+ .select('*')
+ .order('created_at',{
+   ascending:false
+ });
+
+ const container =
+ document.getElementById(
+  'updates'
+ );
+
+ data?.forEach(update=>{
+
+   const card =
+   document.createElement('div');
+
+   card.className='card update';
+
+   card.innerHTML=
+   `
+   <h3>${update.title}</h3>
+   <p>${update.body}</p>
+   `;
+
+   container.appendChild(card);
+ });
+}
+
+async function init(){
+
+ await loadRoadmap();
+ await loadSprint();
+ await loadTeam();
+ await loadUpdates();
+
+}
+
+init();
+
+</script>
+
+</body>
+</html>
