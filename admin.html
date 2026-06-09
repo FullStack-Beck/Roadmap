@@ -1303,7 +1303,6 @@ hr.rune-divider::after {
               <thead>
                 <tr>
                   <th>Name</th>
-                  <th>Email</th>
                   <th>Title</th>
                   <th>Role</th>
                   <th>Visibility</th>
@@ -1628,6 +1627,7 @@ async function loadAll() {
   renderUpdatesPage();
   renderTeamPage();
   renderPlaytestPage();
+  renderMembersPage();
   populateSprintSelects();
   populateRoleSelect();
 }
@@ -2161,18 +2161,15 @@ async function savePlaytest() {
    MEMBERS PAGE
 ═══════════════════════════════════════════════════════════════ */
 async function renderMembersPage() {
-  const { data } = await sb.from('profiles').select('*, auth_users:id(email)').order('created_at');
-  // auth emails aren't accessible from anon key — we'll show what we have
   const { data: profiles } = await sb.from('profiles').select('*').order('created_at');
   const tbody = document.getElementById('members-tbody');
   if (!profiles?.length) {
-    tbody.innerHTML = '<tr><td colspan="7" class="empty-state">No members yet.</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="6" class="empty-state">No members yet.</td></tr>';
     return;
   }
   tbody.innerHTML = profiles.map(m => `
     <tr>
       <td style="font-family:'Cinzel',serif;color:var(--gold)">${m.display_name || '(unnamed)'}</td>
-      <td style="font-size:14px;color:var(--ink4);font-family:'JetBrains Mono',monospace">${m.email || '—'}</td>
       <td style="color:var(--ink3)">${m.title || '—'}</td>
       <td><span class="badge ${m.role === 'admin' ? 'done' : m.role === 'developer' ? 'wip' : 'todo'}">${(m.role || 'user').toUpperCase()}</span></td>
       <td>${m.is_public ? '<span class="badge pub">PUBLIC</span>' : '<span class="badge hidden">HIDDEN</span>'}</td>
