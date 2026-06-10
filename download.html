@@ -1,0 +1,1171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Download · Project Ironveil</title>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Cinzel+Decorative:wght@400;700&family=IM+Fell+English:ital@0;1&family=Crimson+Pro:ital,wght@0,300;0,400;0,600;1,400&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+/* ══ TOKENS ══════════════════════════════════════════════════ */
+:root {
+  --parch:   #f5ead4;
+  --parch2:  #ede0bc;
+  --parch3:  #e5d0a0;
+  --parch4:  #d8c088;
+  --ink:     #1a1208;
+  --ink2:    #3b2c0e;
+  --ink3:    #6b4e22;
+  --ink4:    #8c6d3f;
+  --ink5:    #b8924a;
+  --blood:   #7a1c1c;
+  --teal:    #2d6b5a;
+  --teal2:   #3a8a72;
+  --teal3:   #4aaa8e;
+  --gold:    #8b6910;
+  --gold2:   #b8900f;
+  --gold3:   #d4a820;
+  --gold4:   #f0c83a;
+  --border:  rgba(139,105,20,.2);
+  --border2: rgba(139,105,20,.4);
+  --border3: rgba(139,105,20,.65);
+  --shadow:  rgba(26,18,8,.25);
+  --shadow2: rgba(26,18,8,.5);
+  --noise: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='0.07'/%3E%3C/svg%3E");
+}
+
+*, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--parch);
+  background-image: var(--noise);
+  color: var(--ink);
+  font-family: 'Crimson Pro', serif;
+  font-size: 17px;
+  line-height: 1.6;
+  min-height: 100vh;
+}
+
+/* Vignette */
+body::after {
+  content: '';
+  position: fixed; inset: 0; pointer-events: none; z-index: 0;
+  background: radial-gradient(ellipse 120% 120% at 50% 30%,
+    transparent 40%, rgba(80,50,5,.1) 100%);
+}
+
+/* ══ NAV ═════════════════════════════════════════════════════ */
+.nav {
+  position: sticky; top: 0; z-index: 100;
+  background: linear-gradient(to bottom, var(--ink) 0%, var(--ink2) 100%);
+  border-bottom: 1px solid rgba(139,105,20,.3);
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 40px; height: 56px;
+}
+
+.nav-brand {
+  font-family: 'Cinzel', serif;
+  font-size: 12px; letter-spacing: .22em;
+  color: rgba(200,160,40,.75);
+  display: flex; align-items: center; gap: 10px;
+  text-decoration: none;
+}
+.nav-brand .mark { font-size: 18px; color: var(--gold3); }
+
+.nav-links {
+  display: flex; align-items: center; gap: 0;
+}
+
+.nav-link {
+  font-family: 'Cinzel', serif;
+  font-size: 10px; letter-spacing: .14em;
+  color: rgba(176,144,112,.6);
+  text-decoration: none;
+  padding: 0 18px; height: 56px;
+  display: flex; align-items: center;
+  transition: color .2s;
+  border-right: 1px solid rgba(139,105,20,.12);
+}
+.nav-link:first-child { border-left: 1px solid rgba(139,105,20,.12); }
+.nav-link:hover { color: rgba(220,170,40,.85); }
+.nav-link.active { color: var(--gold3); }
+
+.nav-right { display: flex; align-items: center; gap: 12px; }
+
+.nav-user-chip {
+  font-family: 'Cinzel', serif;
+  font-size: 10px; letter-spacing: .1em;
+  color: rgba(200,160,40,.7);
+  padding: 5px 14px;
+  border: 1px solid rgba(139,105,20,.3);
+  background: rgba(139,105,20,.08);
+}
+
+.nav-btn {
+  font-family: 'Cinzel', serif;
+  font-size: 10px; letter-spacing: .12em;
+  color: rgba(176,144,112,.7);
+  background: none;
+  border: 1px solid rgba(139,105,20,.3);
+  padding: 6px 16px; cursor: pointer;
+  transition: all .2s;
+}
+.nav-btn:hover { border-color: var(--gold2); color: var(--gold3); }
+.nav-btn.primary {
+  background: rgba(139,105,20,.15);
+  border-color: var(--border2);
+  color: var(--gold3);
+}
+
+/* ══ HERO ════════════════════════════════════════════════════ */
+.hero {
+  position: relative; z-index: 1;
+  text-align: center;
+  padding: 80px 40px 64px;
+  border-bottom: 1px solid var(--border);
+  overflow: hidden;
+}
+
+/* Decorative rune watermark */
+.hero::before {
+  content: '⚒';
+  position: absolute;
+  font-size: 420px;
+  color: rgba(139,105,20,.035);
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  line-height: 1;
+}
+
+.hero-ornament {
+  font-size: 15px;
+  color: var(--gold2);
+  letter-spacing: .6em;
+  opacity: .5;
+  margin-bottom: 10px;
+}
+
+.hero-eyebrow {
+  font-family: 'Cinzel', serif;
+  font-size: 9.5px; letter-spacing: .38em;
+  color: var(--ink4);
+  margin-bottom: 20px;
+  text-transform: uppercase;
+}
+
+.hero-title {
+  font-family: 'Cinzel Decorative', serif;
+  font-size: clamp(36px, 6vw, 64px);
+  font-weight: 700;
+  color: var(--ink);
+  letter-spacing: .04em;
+  line-height: 1;
+  margin-bottom: 14px;
+  text-shadow: 2px 4px 24px rgba(139,105,20,.15);
+}
+
+.hero-sub {
+  font-family: 'IM Fell English', serif;
+  font-style: italic;
+  font-size: 19px;
+  color: var(--ink3);
+  margin-bottom: 48px;
+  max-width: 540px;
+  margin-left: auto; margin-right: auto;
+}
+
+/* ══ OS DETECT STRIP ════════════════════════════════════════ */
+.os-strip {
+  display: inline-flex;
+  gap: 0;
+  border: 1.5px solid var(--border2);
+  margin-bottom: 40px;
+  position: relative; z-index: 1;
+}
+
+.os-btn {
+  display: flex; flex-direction: column;
+  align-items: center; gap: 6px;
+  padding: 18px 36px;
+  background: var(--parch2);
+  border: none;
+  border-right: 1px solid var(--border);
+  cursor: pointer;
+  transition: all .2s;
+  font-family: 'Cinzel', serif;
+  position: relative;
+  overflow: hidden;
+  min-width: 180px;
+}
+.os-btn:last-child { border-right: none; }
+
+.os-btn::before {
+  content: '';
+  position: absolute; inset: 0;
+  background: linear-gradient(135deg, var(--gold) 0%, var(--gold2) 100%);
+  opacity: 0; transition: opacity .25s;
+}
+
+.os-btn:hover::before { opacity: 1; }
+.os-btn:hover .os-label,
+.os-btn:hover .os-icon,
+.os-btn:hover .os-ver { color: var(--parch); }
+
+.os-btn.recommended {
+  background: linear-gradient(135deg, var(--ink) 0%, var(--ink2) 100%);
+}
+.os-btn.recommended .os-label,
+.os-btn.recommended .os-icon,
+.os-btn.recommended .os-ver { color: var(--parch); }
+.os-btn.recommended::after {
+  content: 'RECOMMENDED';
+  position: absolute; top: 0; right: 0;
+  font-family: 'Cinzel', serif;
+  font-size: 7.5px; letter-spacing: .14em;
+  background: var(--gold2);
+  color: var(--ink);
+  padding: 3px 8px;
+}
+
+.os-icon {
+  font-size: 24px;
+  position: relative; z-index: 1;
+  color: var(--ink3);
+  transition: color .2s;
+}
+
+.os-label {
+  font-size: 11px; letter-spacing: .14em;
+  color: var(--ink2);
+  position: relative; z-index: 1;
+  transition: color .2s;
+}
+
+.os-ver {
+  font-size: 9px; letter-spacing: .08em;
+  color: var(--ink4);
+  font-family: 'Crimson Pro', serif;
+  position: relative; z-index: 1;
+  transition: color .2s;
+}
+
+/* ══ REQUIREMENTS ════════════════════════════════════════════ */
+.reqs-strip {
+  display: flex; justify-content: center; gap: 32px;
+  flex-wrap: wrap;
+  position: relative; z-index: 1;
+}
+
+.req-item {
+  font-family: 'Cinzel', serif;
+  font-size: 9.5px; letter-spacing: .12em;
+  color: var(--ink4);
+  display: flex; align-items: center; gap: 7px;
+}
+.req-item::before {
+  content: '';
+  width: 4px; height: 4px;
+  background: var(--gold2); opacity: .6;
+  display: inline-block;
+}
+
+/* ══ MAIN CONTENT ════════════════════════════════════════════ */
+.content {
+  position: relative; z-index: 1;
+  max-width: 1000px; margin: 0 auto;
+  padding: 64px 40px 80px;
+}
+
+/* Section heading */
+.section-head {
+  display: flex; align-items: center; gap: 16px;
+  margin-bottom: 24px;
+}
+.section-label {
+  font-family: 'Cinzel', serif;
+  font-size: 11px; letter-spacing: .22em;
+  color: var(--ink4);
+  white-space: nowrap;
+}
+.section-rule {
+  flex: 1; height: 1px;
+  background: linear-gradient(90deg, var(--border2), transparent);
+}
+
+/* ══ STEP CARDS ══════════════════════════════════════════════ */
+.steps {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 2px;
+  margin-bottom: 64px;
+}
+
+.step-card {
+  background: var(--parch2);
+  border: 1px solid var(--border);
+  padding: 28px 24px;
+  position: relative;
+}
+
+.step-num {
+  font-family: 'Cinzel Decorative', serif;
+  font-size: 48px;
+  font-weight: 700;
+  color: rgba(139,105,20,.1);
+  line-height: 1;
+  position: absolute;
+  top: 16px; right: 20px;
+}
+
+.step-icon { font-size: 22px; margin-bottom: 12px; display: block; }
+
+.step-title {
+  font-family: 'Cinzel', serif;
+  font-size: 13px; letter-spacing: .06em;
+  color: var(--ink);
+  margin-bottom: 8px;
+}
+
+.step-body { font-size: 15px; color: var(--ink3); line-height: 1.65; }
+
+/* ══ VERSION / RELEASE TABLE ════════════════════════════════ */
+.release-card {
+  background: var(--parch2);
+  border: 1px solid var(--border2);
+  overflow: hidden;
+  margin-bottom: 64px;
+}
+
+.release-head {
+  background: linear-gradient(to right, var(--ink2), var(--ink));
+  padding: 16px 24px;
+  display: flex; align-items: center; justify-content: space-between;
+}
+
+.release-title {
+  font-family: 'Cinzel', serif;
+  font-size: 12px; letter-spacing: .14em;
+  color: var(--gold3);
+}
+
+.release-badge {
+  font-family: 'Cinzel', serif;
+  font-size: 9px; letter-spacing: .14em;
+  padding: 4px 10px;
+  border: 1px solid var(--gold2);
+  color: var(--gold3);
+}
+
+.release-body { padding: 20px 24px; }
+
+.release-row {
+  display: grid;
+  grid-template-columns: 1fr 120px 120px 140px;
+  gap: 16px;
+  align-items: center;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--border);
+  font-size: 14.5px;
+}
+.release-row:last-child { border-bottom: none; }
+.release-row.header {
+  font-family: 'Cinzel', serif;
+  font-size: 9.5px; letter-spacing: .14em;
+  color: var(--ink4);
+  padding-bottom: 8px;
+}
+
+.release-name { color: var(--ink2); font-weight: 600; }
+.release-ver  { color: var(--ink4); font-family: 'Cinzel', serif; font-size: 10px; }
+.release-date { color: var(--ink4); font-size: 13px; }
+
+.btn-dl {
+  display: inline-flex; align-items: center; gap: 7px;
+  padding: 7px 16px;
+  background: var(--ink2);
+  border: 1px solid var(--border2);
+  color: var(--parch);
+  font-family: 'Cinzel', serif;
+  font-size: 10px; letter-spacing: .1em;
+  cursor: pointer;
+  transition: all .2s;
+  text-decoration: none;
+  white-space: nowrap;
+}
+.btn-dl:hover { background: var(--ink); border-color: var(--gold2); }
+.btn-dl:disabled, .btn-dl.locked {
+  opacity: .4; cursor: not-allowed; pointer-events: none;
+}
+
+.dl-icon { font-size: 11px; }
+
+/* ══ AUTH WALL ═══════════════════════════════════════════════ */
+.auth-wall {
+  background: var(--parch2);
+  border: 1.5px solid var(--border2);
+  padding: 32px;
+  text-align: center;
+  margin-bottom: 64px;
+}
+
+.auth-wall .lock { font-size: 28px; margin-bottom: 12px; display: block; }
+.auth-wall-title {
+  font-family: 'Cinzel', serif;
+  font-size: 16px; letter-spacing: .06em;
+  color: var(--ink);
+  margin-bottom: 8px;
+}
+.auth-wall p { font-style: italic; color: var(--ink3); margin-bottom: 20px; }
+
+.btn-primary {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 12px 32px;
+  background: linear-gradient(135deg, var(--ink) 0%, var(--ink2) 100%);
+  border: 1.5px solid var(--gold2);
+  color: var(--parch);
+  font-family: 'Cinzel', serif;
+  font-size: 11px; letter-spacing: .16em;
+  cursor: pointer; transition: all .2s;
+  text-decoration: none;
+}
+.btn-primary:hover { border-color: var(--gold4); box-shadow: 0 4px 20px rgba(139,105,20,.3); }
+
+/* ══ FAQ ════════════════════════════════════════════════════ */
+.faq-list { display: flex; flex-direction: column; gap: 2px; }
+
+.faq-item {
+  background: var(--parch2);
+  border: 1px solid var(--border);
+  overflow: hidden;
+}
+
+.faq-q {
+  width: 100%; padding: 16px 20px;
+  background: none; border: none;
+  font-family: 'Cinzel', serif;
+  font-size: 12px; letter-spacing: .06em;
+  color: var(--ink);
+  text-align: left; cursor: pointer;
+  display: flex; align-items: center; justify-content: space-between;
+  transition: background .15s;
+}
+.faq-q:hover { background: var(--parch3); }
+.faq-arrow { color: var(--gold2); transition: transform .2s; }
+.faq-item.open .faq-arrow { transform: rotate(90deg); }
+
+.faq-a {
+  display: none;
+  padding: 0 20px 16px;
+  color: var(--ink3);
+  font-size: 15.5px;
+  line-height: 1.7;
+  border-top: 1px solid var(--border);
+}
+.faq-item.open .faq-a { display: block; }
+
+/* ══ AUTH MODAL ══════════════════════════════════════════════ */
+.modal-overlay {
+  position: fixed; inset: 0; z-index: 1000;
+  background: rgba(26,18,8,.7);
+  backdrop-filter: blur(4px);
+  display: none; align-items: center; justify-content: center;
+}
+.modal-overlay.open { display: flex; }
+
+.auth-card {
+  width: 380px;
+  background: var(--parch2);
+  border: 2px solid var(--border2);
+  box-shadow: 0 24px 64px var(--shadow2);
+  animation: slideUp .35s cubic-bezier(.34,1.56,.64,1);
+}
+@keyframes slideUp {
+  from { opacity:0; transform:translateY(20px); }
+  to   { opacity:1; transform:none; }
+}
+
+.auth-head {
+  background: var(--ink2);
+  padding: 28px 26px 20px;
+  text-align: center;
+  border-bottom: 2px solid rgba(139,105,20,.35);
+}
+.auth-emblem { font-size: 28px; margin-bottom: 8px; display: block; }
+.auth-title {
+  font-family: 'Cinzel Decorative', serif;
+  font-size: 18px; color: var(--gold3); letter-spacing: .06em;
+  margin-bottom: 2px;
+}
+.auth-subtitle {
+  font-family: 'Cinzel', serif;
+  font-size: 9px; letter-spacing: .2em;
+  color: rgba(139,105,20,.5);
+}
+
+.auth-body { padding: 22px 24px 18px; }
+
+.auth-tabs {
+  display: flex; border: 1px solid var(--border);
+  margin-bottom: 18px;
+}
+.auth-tab {
+  flex: 1; padding: 8px;
+  background: none; border: none;
+  font-family: 'Cinzel', serif;
+  font-size: 10px; letter-spacing: .12em;
+  color: var(--ink4); cursor: pointer;
+  transition: all .2s;
+  border-bottom: 2px solid transparent;
+}
+.auth-tab.active { background: var(--parch3); color: var(--gold2); border-bottom-color: var(--gold2); }
+
+.field { margin-bottom: 13px; }
+.field label {
+  display: block;
+  font-family: 'Cinzel', serif;
+  font-size: 9px; letter-spacing: .16em;
+  color: var(--ink4); margin-bottom: 5px;
+}
+.field input {
+  width: 100%;
+  background: var(--parch);
+  border: 1.5px solid var(--border);
+  color: var(--ink);
+  padding: 8px 12px;
+  font-family: 'Crimson Pro', serif;
+  font-size: 16px; outline: none;
+  transition: border-color .2s;
+}
+.field input:focus { border-color: var(--gold2); }
+
+.auth-submit {
+  width: 100%; padding: 11px;
+  background: var(--ink2); color: var(--parch);
+  border: none; font-family: 'Cinzel', serif;
+  font-size: 11px; letter-spacing: .14em;
+  cursor: pointer; transition: background .2s;
+  margin-bottom: 10px;
+}
+.auth-submit:hover { background: var(--ink); }
+
+.auth-msg {
+  font-family: 'Cinzel', serif;
+  font-size: 10px; letter-spacing: .06em;
+  text-align: center; min-height: 16px;
+  color: var(--blood);
+}
+
+.modal-close {
+  position: absolute; top: 12px; right: 12px;
+  background: none; border: none;
+  color: rgba(139,105,20,.4); cursor: pointer;
+  font-size: 16px; padding: 4px 8px;
+  transition: color .2s;
+}
+.modal-close:hover { color: rgba(200,150,10,.8); }
+
+/* ══ FOOTER ══════════════════════════════════════════════════ */
+.footer {
+  position: relative; z-index: 1;
+  background: linear-gradient(to bottom, var(--ink2), var(--ink));
+  border-top: 1px solid rgba(139,105,20,.2);
+  padding: 32px 40px;
+  text-align: center;
+}
+.footer-brand {
+  font-family: 'Cinzel Decorative', serif;
+  font-size: 14px; color: var(--gold3);
+  letter-spacing: .06em; margin-bottom: 8px;
+}
+.footer-links {
+  display: flex; justify-content: center; gap: 24px; margin-bottom: 16px;
+}
+.footer-link {
+  font-family: 'Cinzel', serif;
+  font-size: 9.5px; letter-spacing: .14em;
+  color: rgba(139,105,20,.5);
+  text-decoration: none; transition: color .2s;
+}
+.footer-link:hover { color: rgba(200,150,10,.7); }
+.footer-copy {
+  font-size: 12px; color: rgba(139,105,20,.3);
+  font-style: italic;
+}
+
+/* ══ TOAST ═══════════════════════════════════════════════════ */
+.toast-container {
+  position: fixed; bottom: 24px; right: 24px;
+  z-index: 9999; display: flex; flex-direction: column; gap: 8px;
+  pointer-events: none;
+}
+.toast {
+  background: var(--ink2);
+  border: 1px solid rgba(139,105,20,.4);
+  padding: 10px 18px;
+  font-family: 'Cinzel', serif;
+  font-size: 11px; color: var(--gold3); letter-spacing: .07em;
+  box-shadow: 0 4px 16px var(--shadow2);
+  opacity: 0; transform: translateX(12px);
+  transition: opacity .3s, transform .3s;
+}
+.toast.show { opacity: 1; transform: none; }
+.toast.err  { color: #e86060; border-color: rgba(200,50,50,.4); }
+
+/* ══ UTIL ════════════════════════════════════════════════════ */
+.hidden { display: none !important; }
+
+@media (max-width: 680px) {
+  .os-strip { flex-direction: column; }
+  .os-btn { border-right: none; border-bottom: 1px solid var(--border); }
+  .os-btn:last-child { border-bottom: none; }
+  .release-row { grid-template-columns: 1fr 80px; }
+  .release-row .release-ver, .release-row .release-date { display: none; }
+  .reqs-strip { flex-direction: column; align-items: center; gap: 12px; }
+  .nav { padding: 0 20px; }
+  .hero { padding: 56px 24px 48px; }
+  .content { padding: 40px 24px 60px; }
+}
+</style>
+</head>
+<body>
+
+<!-- Nav -->
+<nav class="nav">
+  <a class="nav-brand" href="index.html">
+    <span class="mark">⚒</span> PROJECT IRONVEIL
+  </a>
+  <div class="nav-links">
+    <a class="nav-link" href="index.html">Home</a>
+    <a class="nav-link" href="index.html#roadmap">Codex</a>
+    <a class="nav-link" href="index.html#updates">Scrolls</a>
+    <a class="nav-link active" href="download.html">Download</a>
+  </div>
+  <div class="nav-right" id="nav-right">
+    <button class="nav-btn primary" onclick="openAuthModal()">⬡ Sign In</button>
+  </div>
+</nav>
+
+<!-- Hero -->
+<section class="hero">
+  <div class="hero-ornament">✦ ✦ ✦</div>
+  <div class="hero-eyebrow">Early Access · VR Crafting RPG</div>
+  <h1 class="hero-title">Download the Launcher</h1>
+  <p class="hero-sub">The forge awaits — install the Ironveil Launcher to receive game builds, updates, and announcements directly.</p>
+
+  <!-- OS buttons — auto-highlighted by JS -->
+  <div class="os-strip" id="os-strip">
+    <button class="os-btn" id="btn-win" onclick="downloadLauncher('windows')">
+      <span class="os-icon">🪟</span>
+      <span class="os-label">WINDOWS</span>
+      <span class="os-ver" id="win-ver">Loading…</span>
+    </button>
+    <button class="os-btn" id="btn-mac" onclick="downloadLauncher('mac')">
+      <span class="os-icon">🍎</span>
+      <span class="os-label">macOS</span>
+      <span class="os-ver" id="mac-ver">Loading…</span>
+    </button>
+  </div>
+
+  <div class="reqs-strip">
+    <div class="req-item">Windows 10 / macOS 12+</div>
+    <div class="req-item">VR: Meta Quest 2/3 or PCVR</div>
+    <div class="req-item">4 GB RAM minimum</div>
+    <div class="req-item">2 GB free disk space</div>
+  </div>
+</section>
+
+<!-- Main content -->
+<main class="content">
+
+  <!-- How it works -->
+  <div class="section-head">
+    <span class="section-label">HOW IT WORKS</span>
+    <div class="section-rule"></div>
+  </div>
+
+  <div class="steps">
+    <div class="step-card">
+      <span class="step-num">1</span>
+      <span class="step-icon">⬇</span>
+      <div class="step-title">Download the Launcher</div>
+      <p class="step-body">Click your platform above to download the Ironveil Launcher installer. Run it once to install — no configuration needed.</p>
+    </div>
+    <div class="step-card">
+      <span class="step-num">2</span>
+      <span class="step-icon">⚒</span>
+      <div class="step-title">Sign In to the Forge</div>
+      <p class="step-body">Open the launcher and sign in with your Ironveil account. If you don't have one, create it here — access is granted by the dev team when a playtest slot opens.</p>
+    </div>
+    <div class="step-card">
+      <span class="step-num">3</span>
+      <span class="step-icon">▶</span>
+      <div class="step-title">Install & Play</div>
+      <p class="step-body">Once access is granted, the launcher will show an Install button. It downloads the latest build automatically, then lets you launch straight into the game.</p>
+    </div>
+  </div>
+
+  <!-- Game builds (shown when signed in + has access) -->
+  <div id="game-section" class="hidden">
+    <div class="section-head">
+      <span class="section-label">GAME BUILDS</span>
+      <div class="section-rule"></div>
+    </div>
+
+    <div class="release-card">
+      <div class="release-head">
+        <span class="release-title">AVAILABLE BUILDS</span>
+        <span class="release-badge" id="build-count">Loading…</span>
+      </div>
+      <div class="release-body">
+        <div class="release-row header">
+          <div>Build</div>
+          <div>Version</div>
+          <div>Released</div>
+          <div>Download</div>
+        </div>
+        <div id="builds-list">
+          <!-- populated by JS -->
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Auth wall (shown when not signed in) -->
+  <div id="auth-wall" class="">
+    <div class="section-head">
+      <span class="section-label">GAME BUILDS</span>
+      <div class="section-rule"></div>
+    </div>
+    <div class="auth-wall">
+      <span class="lock">🔒</span>
+      <div class="auth-wall-title">Sign In to Access Game Builds</div>
+      <p>Game builds are only available to authorised playtesters. Sign in to check your access status — or create an account and the team will review it.</p>
+      <button class="btn-primary" onclick="openAuthModal()">⬡ Sign In to the Forge</button>
+    </div>
+  </div>
+
+  <!-- No-access wall -->
+  <div id="no-access-wall" class="hidden">
+    <div class="section-head">
+      <span class="section-label">GAME BUILDS</span>
+      <div class="section-rule"></div>
+    </div>
+    <div class="auth-wall">
+      <span class="lock">⏳</span>
+      <div class="auth-wall-title">Access Pending</div>
+      <p>Your account is registered, but playtest access hasn't been granted yet. A developer will open the gates when a slot becomes available — you'll be notified.</p>
+    </div>
+  </div>
+
+  <!-- FAQ -->
+  <div class="section-head" style="margin-top:0">
+    <span class="section-label">QUESTIONS</span>
+    <div class="section-rule"></div>
+  </div>
+
+  <div class="faq-list">
+    <div class="faq-item">
+      <button class="faq-q" onclick="toggleFaq(this)">
+        Do I need a VR headset to play?
+        <span class="faq-arrow">▸</span>
+      </button>
+      <div class="faq-a">During the current alpha, a VR headset is required. Meta Quest 2 and Meta Quest 3 are officially supported, along with PCVR via Steam Link.</div>
+    </div>
+    <div class="faq-item">
+      <button class="faq-q" onclick="toggleFaq(this)">
+        How do I get a playtest invite?
+        <span class="faq-arrow">▸</span>
+      </button>
+      <div class="faq-a">Create an account, and a developer will review it and grant access manually. The team is small, so spots open in waves — watch the Development Chronicles for announcements.</div>
+    </div>
+    <div class="faq-item">
+      <button class="faq-q" onclick="toggleFaq(this)">
+        Will the launcher auto-update the game?
+        <span class="faq-arrow">▸</span>
+      </button>
+      <div class="faq-a">Yes. When a new build is released, the launcher shows a notification and an Update button. It downloads only what's changed, so updates are fast.</div>
+    </div>
+    <div class="faq-item">
+      <button class="faq-q" onclick="toggleFaq(this)">
+        Is my data safe?
+        <span class="faq-arrow">▸</span>
+      </button>
+      <div class="faq-a">Accounts are secured through Supabase Auth. The launcher stores a session token locally — your password is never saved. Game downloads are authenticated against your account so builds can't be shared.</div>
+    </div>
+    <div class="faq-item">
+      <button class="faq-q" onclick="toggleFaq(this)">
+        I'm a developer — can I manage builds from the launcher?
+        <span class="faq-arrow">▸</span>
+      </button>
+      <div class="faq-a">Upload builds as GitHub releases in the private repo. Once uploaded, they appear automatically in the launcher and this page for all authorised players.</div>
+    </div>
+  </div>
+
+</main>
+
+<!-- Footer -->
+<footer class="footer">
+  <div class="footer-brand">Project Ironveil</div>
+  <div class="footer-links">
+    <a class="footer-link" href="/">Home</a>
+    <a class="footer-link" href="/roadmap">Codex</a>
+    <a class="footer-link" href="/updates">Chronicles</a>
+    <a class="footer-link" href="mailto:hello@projectironveil.com">Contact</a>
+  </div>
+  <div class="footer-copy">© 2025 Project Ironveil — All rights reserved</div>
+</footer>
+
+<!-- Auth modal -->
+<div class="modal-overlay" id="auth-overlay" onclick="closeAuthModal(event)">
+  <div class="auth-card" style="position:relative">
+    <button class="modal-close" onclick="closeAuthModal()">✕</button>
+    <div class="auth-head">
+      <span class="auth-emblem">⚒</span>
+      <div class="auth-title">Ironveil</div>
+      <div class="auth-subtitle">ENTER THE FORGE</div>
+    </div>
+    <div class="auth-body">
+      <div class="auth-tabs">
+        <button class="auth-tab active" id="tab-in" onclick="switchTab('in')">Sign In</button>
+        <button class="auth-tab" id="tab-up" onclick="switchTab('up')">Create Account</button>
+      </div>
+
+      <div id="form-in">
+        <div class="field"><label>Email</label>
+          <input type="email" id="in-email" placeholder="your@email.com">
+        </div>
+        <div class="field"><label>Password</label>
+          <input type="password" id="in-pass" placeholder="••••••••"
+            onkeydown="if(event.key==='Enter')doSignIn()">
+        </div>
+        <button class="auth-submit" onclick="doSignIn()">Enter the Forge</button>
+      </div>
+
+      <div id="form-up" style="display:none">
+        <div class="field"><label>Display Name</label>
+          <input type="text" id="up-name" placeholder="Your name or alias">
+        </div>
+        <div class="field"><label>Email</label>
+          <input type="email" id="up-email" placeholder="your@email.com">
+        </div>
+        <div class="field"><label>Password</label>
+          <input type="password" id="up-pass" placeholder="Min. 6 characters"
+            onkeydown="if(event.key==='Enter')doSignUp()">
+        </div>
+        <button class="auth-submit" onclick="doSignUp()">Pledge Your Name</button>
+      </div>
+
+      <div class="auth-msg" id="auth-msg"></div>
+    </div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast-container" id="toasts"></div>
+
+<script>
+// ══ CONFIG ════════════════════════════════════════════════════
+const SUPABASE_URL = 'https://tzehikqnnzaykyaomzer.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR6ZWhpa3FubnpheWt5YW9temVyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA3OTMxMzMsImV4cCI6MjA5NjM2OTEzM30.Trm5ha1xSr5MvQ-s3AKDdcBncdVCH_xi3CjhVfQaLfo';
+
+// !! REPLACE with your private GitHub repo details !!
+// These live in your Supabase `app_config` table (fetched at runtime, not hardcoded)
+// — see the setup guide delivered with this file.
+const GITHUB_OWNER = 'FullStack-Beck';   // e.g. 'ironveil-studio'
+const GITHUB_REPO  = 'IronveilLauncher'; // your private releases repo name
+
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
+  auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true }
+});
+
+// Launcher release versions — update these when you ship a new launcher build
+// These point to PUBLIC GitHub release assets on a SEPARATE public repo
+// (just the launcher installer, not the game)
+const LAUNCHER_RELEASES = {
+  windows: {
+    url: 'https://github.com/FullStack-Beck/IronveilLauncher/releases/latest/download/IronveilSetup.exe',
+    ver: 'v1.0.0 · Windows 10/11 · 64-bit'
+  }/*
+  mac: {
+    url: 'https://github.com/FullStack-Beck/IronveilLauncher/releases/latest/download/Ironveil.dmg',
+    ver: 'v1.0.0 · macOS 12+ · Universal'
+  }*/
+};
+
+// Access roles that can download game builds
+const ACCESS_ROLES = ['developer', 'admin', 'tester'];
+
+// ══ STATE ════════════════════════════════════════════════════
+let currentUser    = null;
+let currentProfile = null;
+let githubToken    = null; // fetched from Supabase, never hardcoded here
+
+// ══ INIT ════════════════════════════════════════════════════
+(async () => {
+  detectOS();
+  await initAuth();
+  await loadLauncherVersions();
+})();
+
+// ══ OS DETECTION ════════════════════════════════════════════
+function detectOS() {
+  const ua = navigator.userAgent.toLowerCase();
+  const isWin = ua.includes('windows');
+  const isMac = ua.includes('mac');
+  if (isWin) {
+    document.getElementById('btn-win').classList.add('recommended');
+  } else if (isMac) {
+    document.getElementById('btn-mac').classList.add('recommended');
+  }
+}
+
+async function loadLauncherVersions() {
+  document.getElementById('win-ver').textContent = LAUNCHER_RELEASES.windows.ver;
+  document.getElementById('mac-ver').textContent = LAUNCHER_RELEASES.mac.ver;
+}
+
+function downloadLauncher(os) {
+  const rel = LAUNCHER_RELEASES[os];
+  if (!rel?.url || rel.url.includes('YOUR_ORG')) {
+    toast('Launcher download link not configured yet.', true);
+    return;
+  }
+  toast(`Downloading ${os === 'windows' ? 'Windows' : 'macOS'} launcher…`);
+  window.location.href = rel.url;
+}
+
+// ══ AUTH ════════════════════════════════════════════════════
+async function initAuth() {
+  const { data: { session } } = await sb.auth.getSession();
+  if (session?.user) await handleSignedIn(session.user);
+
+  sb.auth.onAuthStateChange(async (event, session) => {
+    if (event === 'SIGNED_IN')  await handleSignedIn(session.user);
+    if (event === 'SIGNED_OUT') handleSignedOut();
+  });
+}
+
+async function handleSignedIn(user) {
+  currentUser = user;
+  const { data } = await sb.from('profiles').select('*').eq('id', user.id).maybeSingle();
+  currentProfile = data;
+
+  // Update nav
+  const name = currentProfile?.display_name || user.email.split('@')[0];
+  document.getElementById('nav-right').innerHTML = `
+    <span class="nav-user-chip">⚒ ${name}</span>
+    <button class="nav-btn" onclick="doSignOut()">Sign Out</button>
+  `;
+
+  closeAuthModal();
+
+  const role = currentProfile?.role || 'user';
+  const hasAccess = ACCESS_ROLES.includes(role);
+
+  if (hasAccess) {
+    document.getElementById('auth-wall').classList.add('hidden');
+    document.getElementById('no-access-wall').classList.add('hidden');
+    document.getElementById('game-section').classList.remove('hidden');
+    await loadGithubToken();
+    await loadGameBuilds();
+  } else {
+    document.getElementById('auth-wall').classList.add('hidden');
+    document.getElementById('no-access-wall').classList.remove('hidden');
+    document.getElementById('game-section').classList.add('hidden');
+  }
+}
+
+function handleSignedOut() {
+  currentUser = null;
+  currentProfile = null;
+  githubToken = null;
+  document.getElementById('nav-right').innerHTML =
+    `<button class="nav-btn primary" onclick="openAuthModal()">⬡ Sign In</button>`;
+  document.getElementById('auth-wall').classList.remove('hidden');
+  document.getElementById('no-access-wall').classList.add('hidden');
+  document.getElementById('game-section').classList.add('hidden');
+}
+
+async function doSignIn() {
+  const email = document.getElementById('in-email').value.trim();
+  const pass  = document.getElementById('in-pass').value;
+  setAuthMsg('');
+  const { error } = await sb.auth.signInWithPassword({ email, password: pass });
+  if (error) setAuthMsg(error.message);
+}
+
+async function doSignUp() {
+  const name  = document.getElementById('up-name').value.trim();
+  const email = document.getElementById('up-email').value.trim();
+  const pass  = document.getElementById('up-pass').value;
+  setAuthMsg('');
+  if (!name) { setAuthMsg('Display name required.'); return; }
+  const { error } = await sb.auth.signUp({
+    email, password: pass,
+    options: { data: { display_name: name } }
+  });
+  if (error) { setAuthMsg(error.message); return; }
+  document.getElementById('auth-msg').style.color = 'var(--teal2)';
+  setAuthMsg('Account forged! Check email to confirm, then sign in.');
+}
+
+async function doSignOut() { await sb.auth.signOut(); }
+
+function openAuthModal()  { document.getElementById('auth-overlay').classList.add('open'); }
+function closeAuthModal(e) {
+  if (!e || e.target === document.getElementById('auth-overlay'))
+    document.getElementById('auth-overlay').classList.remove('open');
+}
+
+function switchTab(t) {
+  document.getElementById('form-in').style.display = t === 'in' ? '' : 'none';
+  document.getElementById('form-up').style.display = t === 'up' ? '' : 'none';
+  document.getElementById('tab-in').classList.toggle('active', t === 'in');
+  document.getElementById('tab-up').classList.toggle('active', t === 'up');
+  setAuthMsg('');
+  document.getElementById('auth-msg').style.color = 'var(--blood)';
+}
+
+function setAuthMsg(msg) { document.getElementById('auth-msg').textContent = msg; }
+
+// ══ GITHUB TOKEN (from Supabase — never hardcoded in frontend) ══
+// The token lives in a Supabase table called `app_config` with RLS
+// that only allows developer/admin roles to read it.
+// See the setup guide for the exact SQL.
+async function loadGithubToken() {
+  try {
+    const { data, error } = await sb
+      .from('app_config')
+      .select('value')
+      .eq('key', 'github_release_token')
+      .maybeSingle();
+    if (!error && data) githubToken = data.value;
+  } catch {}
+}
+
+// ══ GAME BUILDS FROM GITHUB ══════════════════════════════════
+async function loadGameBuilds() {
+  const list = document.getElementById('builds-list');
+  list.innerHTML = `<div style="font-style:italic;color:var(--ink4);padding:12px 0">Loading builds from the forge…</div>`;
+
+  if (!githubToken) {
+    // Fallback: show Supabase-stored release metadata instead
+    await loadBuildsFromSupabase();
+    return;
+  }
+
+  try {
+    const res = await fetch(
+      `https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/releases`,
+      {
+        headers: {
+          'Authorization': `Bearer ${githubToken}`,
+          'Accept': 'application/vnd.github+json',
+          'X-GitHub-Api-Version': '2022-11-28'
+        }
+      }
+    );
+
+    if (!res.ok) throw new Error(`GitHub API: ${res.status}`);
+    const releases = await res.json();
+    renderBuilds(releases, githubToken);
+    document.getElementById('build-count').textContent =
+      `${releases.length} Build${releases.length !== 1 ? 's' : ''}`;
+  } catch (err) {
+    console.error(err);
+    await loadBuildsFromSupabase(); // graceful fallback
+  }
+}
+
+// Fallback: builds table in Supabase (manually managed by devs)
+async function loadBuildsFromSupabase() {
+  const { data } = await sb.from('game_builds')
+    .select('*')
+    .order('created_at', { ascending: false });
+
+  const list = document.getElementById('builds-list');
+  if (!data?.length) {
+    list.innerHTML = `<div style="font-style:italic;color:var(--ink4);padding:12px 0">No builds available yet — watch the Chronicles for the first release.</div>`;
+    document.getElementById('build-count').textContent = '0 Builds';
+    return;
+  }
+
+  document.getElementById('build-count').textContent =
+    `${data.length} Build${data.length !== 1 ? 's' : ''}`;
+
+  list.innerHTML = data.map(b => `
+    <div class="release-row">
+      <div>
+        <div class="release-name">${b.name}</div>
+        <div style="font-size:13px;color:var(--ink4);margin-top:2px;font-style:italic">${b.notes || ''}</div>
+      </div>
+      <div class="release-ver">${b.version || '—'}</div>
+      <div class="release-date">${new Date(b.created_at).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})}</div>
+      <div>
+        ${b.windows_url ? `<a class="btn-dl" href="${b.windows_url}"><span class="dl-icon">⬇</span> Windows</a>` : ''}
+        ${b.mac_url ? `<a class="btn-dl" href="${b.mac_url}" style="margin-top:4px"><span class="dl-icon">⬇</span> macOS</a>` : ''}
+        ${(!b.windows_url && !b.mac_url) ? '<span style="font-style:italic;color:var(--ink4);font-size:13px">Coming soon</span>' : ''}
+      </div>
+    </div>
+  `).join('');
+}
+
+function renderBuilds(releases, token) {
+  const list = document.getElementById('builds-list');
+  if (!releases.length) {
+    list.innerHTML = `<div style="font-style:italic;color:var(--ink4);padding:12px 0">No builds released yet — watch the Chronicles.</div>`;
+    return;
+  }
+
+  list.innerHTML = releases.map(r => {
+    const date = new Date(r.published_at).toLocaleDateString('en-US',
+      { month:'short', day:'numeric', year:'numeric' });
+
+    // Find Windows and Mac assets
+    const winAsset = r.assets?.find(a => a.name.toLowerCase().endsWith('.exe') || a.name.toLowerCase().includes('windows'));
+    const macAsset = r.assets?.find(a => a.name.toLowerCase().endsWith('.dmg') || a.name.toLowerCase().includes('mac'));
+
+    const makeBtn = (asset, label) => {
+      if (!asset) return '';
+      // For private repos, assets need auth — we proxy via a Supabase Edge Function
+      // See the setup guide: the Edge Function adds the token server-side
+      const dlUrl = `/api/download-asset?asset_id=${asset.id}&repo=${GITHUB_OWNER}/${GITHUB_REPO}`;
+      return `<a class="btn-dl" href="${dlUrl}"><span class="dl-icon">⬇</span> ${label}</a>`;
+    };
+
+    return `
+      <div class="release-row">
+        <div>
+          <div class="release-name">${r.name || r.tag_name}</div>
+          <div style="font-size:13px;color:var(--ink4);margin-top:2px;font-style:italic;max-width:320px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${r.body?.split('\n')[0] || ''}</div>
+        </div>
+        <div class="release-ver">${r.tag_name}</div>
+        <div class="release-date">${date}</div>
+        <div style="display:flex;flex-direction:column;gap:4px">
+          ${makeBtn(winAsset, 'Windows') || makeBtn(macAsset, 'macOS') || '<span style="font-style:italic;color:var(--ink4);font-size:13px">No assets yet</span>'}
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+// ══ FAQ TOGGLE ════════════════════════════════════════════════
+function toggleFaq(btn) {
+  btn.closest('.faq-item').classList.toggle('open');
+}
+
+// ══ TOAST ════════════════════════════════════════════════════
+function toast(msg, err = false) {
+  const container = document.getElementById('toasts');
+  const el = document.createElement('div');
+  el.className = 'toast' + (err ? ' err' : '');
+  el.textContent = msg;
+  container.appendChild(el);
+  requestAnimationFrame(() => requestAnimationFrame(() => el.classList.add('show')));
+  setTimeout(() => { el.classList.remove('show'); setTimeout(() => el.remove(), 300); }, 3500);
+}
+</script>
+</body>
+</html>
